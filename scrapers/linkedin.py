@@ -78,8 +78,9 @@ class LinkedInScraper(BaseScraper):
                 await asyncio.sleep(random.uniform(2.0, 5.0))
                 
                 # Parse job cards (Guest View Layout)
-                items = await page.query_selector_all('ul.jobs-search__results-list > li, .jobs-search__results-list > li')
-                logger.info(f"Found {len(items)} items in the results list.")
+                # LinkedIn guest search results can use several different container classes
+                items = await page.query_selector_all('ul.jobs-search__results-list > li, .jobs-search__results-list > li, .base-search-card, .job-search-card')
+                logger.info(f"LinkedIn: Found {len(items)} items in the results list.")
                 
                 for item in items:
                     # Multi-source ID extraction
@@ -97,14 +98,20 @@ class LinkedInScraper(BaseScraper):
                         
                     job_id = job_id_raw.split(':')[-1] if ':' in job_id_raw else job_id_raw
 
-                    title_elem = await item.query_selector('h3.base-search-card__title, .base-card__title, .result-card__title, .job-search-card__title')
-                    company_elem = await item.query_selector('h4.base-search-card__subtitle, .base-card__subtitle, .result-card__subtitle-link, .job-search-card__subtitle')
-                    url_elem = await item.query_selector('a.base-card__full-link, .result-card__full-link, .job-search-card__link')
-                    time_elem = await item.query_selector('time, .job-result-card__list-date, .job-search-card__list-date')
-                    loc_elem = await item.query_selector('span.job-search-card__location, .job-result-card__location, .base-search-card__metadata > span:first-child')
+                    title_elem = await item.query_selector('h3.base-search-card__title, .base-card__title, .result-card__title, .job-search-card__title, .base-search-card__title')
+                    company_elem = await item.query_selector('h4.base-search-card__subtitle, .base-card__subtitle, .result-card__subtitle-link, .job-search-card__subtitle, .base-search-card__subtitle')
+                    url_elem = await item.query_selector('a.base-card__full-link, .result-card__full-link, .job-search-card__link, .base-search-card__full-link')
+                    time_elem = await item.query_selector('time, .job-result-card__list-date, .job-search-card__list-date, .job-search-card__pubdate')
+                    loc_elem = await item.query_selector('span.job-search-card__location, .job-result-card__location, .base-search-card__metadata > span:first-child, .job-search-card__location')
                     
                     if not title_elem or not company_elem or not url_elem:
-                        logger.info(f"Skipping job card {job_id} - missing elements (T:{bool(title_elem)} C:{bool(company_elem)} U:{bool(url_elem)})")
+                        # Try a more generic approach if specific selectors fail
+                        title_elem = title_elem or await item.query_selector('[class*="title"]')
+                        company_elem = company_elem or await item.query_selector('[class*="subtitle"], [class*="company"]')
+                        url_elem = url_elem or await item.query_selector('a')
+
+                    if not title_elem or not company_elem or not url_elem:
+                        logger.debug(f"LinkedIn: Skipping card {job_id} - missing critical elements (T:{bool(title_elem)} C:{bool(company_elem)} U:{bool(url_elem)})")
                         continue
 
                     title_text = (await title_elem.inner_text()).strip()

@@ -26,6 +26,7 @@ class HimalayasScraper(BaseScraper):
                         "company": job.get("companyName", "Tech Company"),
                         "location": "Global / Remote",  # All Himalayas jobs are strictly remote
                         "url": job.get("applicationLink", job.get("jobLink", "")),
+                        "description": job.get("description", ""),
                         "time_posted": str(job.get("pubDate", "Recently"))[:10], 
                         "platform": "Himalayas"
                     })

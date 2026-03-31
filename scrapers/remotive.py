@@ -25,6 +25,7 @@ class RemotiveScraper(BaseScraper):
                         "company": job.get("company_name", "Global Firm"),
                         "location": job.get("candidate_required_location", "Global / Remote"),
                         "url": job.get("url", ""),
+                        "description": job.get("description", ""),
                         "time_posted": job.get("publication_date", "Recently").split("T")[0], # formats date to YYYY-MM-DD
                         "platform": "Remotive API"
                     })

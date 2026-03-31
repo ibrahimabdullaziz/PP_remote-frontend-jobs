@@ -1,7 +1,7 @@
 import asyncio
 import sys
 from loguru import logger
-from config.settings import POLL_INTERVAL_SECONDS, TARGET_PROFILES, MANDATORY_TITLE_KEYWORDS, FAKE_REMOTE_KEYWORDS
+from config.settings import POLL_INTERVAL_SECONDS, TARGET_PROFILES, MANDATORY_TITLE_KEYWORDS, FAKE_REMOTE_KEYWORDS, LOG_FILE_PATH
 from core.database import init_db, is_job_processed, mark_job_processed
 from core.telegram_notifier import send_job_alert, send_admin_alert
 from scrapers.linkedin import LinkedInScraper
@@ -13,18 +13,19 @@ from scrapers.himalayas import HimalayasScraper
 # Setup Loguru for structured, async-friendly logging
 logger.remove()
 logger.add(sys.stdout, format="<green>{time:YYYY-MM-DD HH:mm:ss}</green> | <level>{level: <8}</level> | <cyan>{message}</cyan>", level="INFO")
+logger.add(LOG_FILE_PATH, rotation="10 MB", level="DEBUG", format="{time:YYYY-MM-DD HH:mm:ss} | {level: <8} | {message}")
 
-def is_valid_frontend_job(title: str) -> bool:
+def is_valid_frontend_job(title: str, description: str = "") -> bool:
     """Ensure the job strictly matches frontend keywords and contains no fake-remote keywords."""
-    title_lower = title.lower()
+    full_text = (title + " " + description).lower()
     
-    # Must contain frontend tech
-    if not any(kw.lower() in title_lower for kw in MANDATORY_TITLE_KEYWORDS):
+    # Must contain frontend tech in title or description (prioritize title for mandatory)
+    if not any(kw.lower() in title.lower() for kw in MANDATORY_TITLE_KEYWORDS):
         return False
         
-    # Must NOT contain backend/fake-remote keywords in title
+    # Must NOT contain backend/fake-remote keywords in either
     for kw in FAKE_REMOTE_KEYWORDS:
-        if kw.lower() in title_lower:
+        if kw.lower() in full_text:
             return False
             
     return True
@@ -32,8 +33,9 @@ def is_valid_frontend_job(title: str) -> bool:
 async def process_jobs(jobs):
     """Filter, deduplicate, and notify for a batch of jobs."""
     for job in jobs:
-        if not is_valid_frontend_job(job['title']):
-            logger.debug(f"Skipping IRRELEVANT title: {job['title']} from {job['platform']}")
+        desc = job.get('description', '')
+        if not is_valid_frontend_job(job['title'], desc):
+            logger.debug(f"Skipping IRRELEVANT or FAKE-REMOTE: {job['title']} from {job['platform']}")
             continue
             
         if not await is_job_processed(job["id"]):
@@ -50,10 +52,13 @@ async def run_scraper_iteration():
     # 1. Localized Scrapers (Require Specific Profiles)
     linkedin_scraper = LinkedInScraper()
     for profile in TARGET_PROFILES:
-        logger.info(f"LinkedIn: Scraping for keywords: {profile['keywords']} in {profile['location']}")
-        jobs = await linkedin_scraper.get_jobs(profile["keywords"], profile["location"])
-        await process_jobs(jobs)
-        await asyncio.sleep(2)
+        try:
+            logger.info(f"LinkedIn: Scraping for keywords: {profile['keywords']} in {profile['location']}")
+            jobs = await linkedin_scraper.get_jobs(profile["keywords"], profile["location"])
+            await process_jobs(jobs)
+        except Exception as e:
+            logger.error(f"LinkedIn Scraper failed for profile {profile['location']}: {e}")
+        await asyncio.sleep(5)
         
     # 2. Global API Scrapers (No profiles needed, mass extraction)
     global_scrapers = [WWRScraper(), RemotiveScraper(), RemoteOKScraper(), HimalayasScraper()]

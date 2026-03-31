@@ -33,6 +33,7 @@ class RemoteOKScraper(BaseScraper):
                         "company": job.get("company", "Global Firm"),
                         "location": job.get("location", "Global / Remote"),
                         "url": job.get("url", ""),
+                        "description": job.get("description", ""),
                         "time_posted": job.get("date", "Recently").split("T")[0], # formats date to YYYY-MM-DD
                         "platform": "RemoteOK"
                     })
