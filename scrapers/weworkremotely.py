@@ -2,6 +2,7 @@ import httpx
 from bs4 import BeautifulSoup
 from scrapers.base import BaseScraper
 from loguru import logger
+from utils.date_utils import get_age_hours
 import feedparser
 
 class WWRScraper(BaseScraper):
@@ -39,9 +40,11 @@ class WWRScraper(BaseScraper):
                         "id": f"wwr_{job_id}",
                         "title": title,
                         "company": company,
-                        "location": "Global / Remote",  # WWR implies remote everywhere
+                        "location": "Global / Remote",
                         "url": link,
-                        "time_posted": "Recently",
+                        "description": entry.get('description', entry.get('summary', '')),
+                        "time_posted": entry.get('published', 'Recently'),
+                        "age_hours": get_age_hours(entry.get('published', 'Recently')),
                         "platform": "We Work Remotely"
                     })
                 logger.info(f"WWR Extraction Complete. Found {len(jobs)} global roles.")

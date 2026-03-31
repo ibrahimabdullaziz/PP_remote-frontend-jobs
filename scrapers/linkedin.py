@@ -8,6 +8,7 @@ from bs4 import BeautifulSoup
 from loguru import logger
 from scrapers.base import BaseScraper
 from config.settings import PROXIES, FAKE_REMOTE_KEYWORDS, MANDATORY_TITLE_KEYWORDS
+from utils.date_utils import get_age_hours
 
 class LinkedInScraper(BaseScraper):
     def __init__(self):
@@ -143,6 +144,7 @@ class LinkedInScraper(BaseScraper):
                         "location": detailed_location,
                         "url": url_text,
                         "time_posted": time_text,
+                        "age_hours": get_age_hours(time_text),
                         "platform": "LinkedIn"
                     })
             except Exception as e:

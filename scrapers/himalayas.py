@@ -1,6 +1,7 @@
 import httpx
 from scrapers.base import BaseScraper
 from loguru import logger
+from utils.date_utils import get_age_hours
 
 class HimalayasScraper(BaseScraper):
     def __init__(self):
@@ -27,7 +28,8 @@ class HimalayasScraper(BaseScraper):
                         "location": "Global / Remote",  # All Himalayas jobs are strictly remote
                         "url": job.get("applicationLink", job.get("jobLink", "")),
                         "description": job.get("description", ""),
-                        "time_posted": str(job.get("pubDate", "Recently"))[:10], 
+                        "time_posted": str(job.get("pubDate", "Recently")),
+                        "age_hours": get_age_hours(str(job.get("pubDate", "Recently"))),
                         "platform": "Himalayas"
                     })
                 logger.info(f"Himalayas API Extraction Complete. Found {len(jobs)} recent remote roles (pending strict frontend filtering).")

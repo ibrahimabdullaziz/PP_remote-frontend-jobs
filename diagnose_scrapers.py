@@ -44,7 +44,7 @@ async def test_scrapers():
             results[name] = {
                 "total": len(jobs),
                 "filtered": len(filtered),
-                "sample": filtered[:2] if filtered else []
+                "sample": [{"title": j["title"], "age": j.get("age_hours")} for j in filtered[:2]]
             }
         except Exception as e:
             results[name] = {"error": str(e)}

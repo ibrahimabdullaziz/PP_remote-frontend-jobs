@@ -1,7 +1,7 @@
 import asyncio
 import sys
 from loguru import logger
-from config.settings import POLL_INTERVAL_SECONDS, TARGET_PROFILES, MANDATORY_TITLE_KEYWORDS, FAKE_REMOTE_KEYWORDS, LOG_FILE_PATH
+from config.settings import POLL_INTERVAL_SECONDS, TARGET_PROFILES, MANDATORY_TITLE_KEYWORDS, FAKE_REMOTE_KEYWORDS, LOG_FILE_PATH, MAX_JOB_AGE_HOURS
 from core.database import init_db, is_job_processed, mark_job_processed
 from core.telegram_notifier import send_job_alert, send_admin_alert
 from scrapers.linkedin import LinkedInScraper
@@ -32,12 +32,21 @@ def is_valid_frontend_job(title: str, description: str = "") -> bool:
 
 async def process_jobs(jobs):
     """Filter, deduplicate, and notify for a batch of jobs."""
+    # Note: Modern scrapers provide 'age_hours' or 'timestamp'
     for job in jobs:
+        # 1. Title/Description Irrelevance
         desc = job.get('description', '')
         if not is_valid_frontend_job(job['title'], desc):
             logger.debug(f"Skipping IRRELEVANT or FAKE-REMOTE: {job['title']} from {job['platform']}")
             continue
             
+        # 2. Strict Recency Filter (Ensures "MOST RECENT")
+        # Scrapers should provide 'age_hours' if available
+        age = job.get('age_hours', 0)
+        if age > MAX_JOB_AGE_HOURS:
+            logger.debug(f"Skipping OLD job [{age}h]: {job['title']} from {job['platform']}")
+            continue
+
         if not await is_job_processed(job["id"]):
             logger.success(f"New Job Found [{job['platform']}]: {job['title']} at {job['company']}")
             await send_job_alert(job)

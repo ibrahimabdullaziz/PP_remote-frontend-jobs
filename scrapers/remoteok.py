@@ -1,6 +1,7 @@
 import httpx
 from scrapers.base import BaseScraper
 from loguru import logger
+from utils.date_utils import get_age_hours
 
 class RemoteOKScraper(BaseScraper):
     def __init__(self):
@@ -34,7 +35,8 @@ class RemoteOKScraper(BaseScraper):
                         "location": job.get("location", "Global / Remote"),
                         "url": job.get("url", ""),
                         "description": job.get("description", ""),
-                        "time_posted": job.get("date", "Recently").split("T")[0], # formats date to YYYY-MM-DD
+                        "time_posted": job.get("date", "Recently"),
+                        "age_hours": get_age_hours(job.get("date", "Recently")),
                         "platform": "RemoteOK"
                     })
                 logger.info(f"RemoteOK API Extraction Complete. Found {len(jobs)} global frontend roles.")
