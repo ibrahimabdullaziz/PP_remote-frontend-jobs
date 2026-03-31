@@ -7,6 +7,8 @@ from core.telegram_notifier import send_job_alert, send_admin_alert
 from scrapers.linkedin import LinkedInScraper
 from scrapers.weworkremotely import WWRScraper
 from scrapers.remotive import RemotiveScraper
+from scrapers.remoteok import RemoteOKScraper
+from scrapers.himalayas import HimalayasScraper
 
 # Setup Loguru for structured, async-friendly logging
 logger.remove()
@@ -54,7 +56,7 @@ async def run_scraper_iteration():
         await asyncio.sleep(2)
         
     # 2. Global API Scrapers (No profiles needed, mass extraction)
-    global_scrapers = [WWRScraper(), RemotiveScraper()]
+    global_scrapers = [WWRScraper(), RemotiveScraper(), RemoteOKScraper(), HimalayasScraper()]
     for scraper in global_scrapers:
         try:
             jobs = await scraper.get_jobs("", "")

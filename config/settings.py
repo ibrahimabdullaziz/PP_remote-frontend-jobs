@@ -15,7 +15,7 @@ PROXIES = [p.strip() for p in os.getenv("PROXIES", "").split(",") if p.strip()]
 os.makedirs("data", exist_ok=True)
 
 # Scraper Settings
-POLL_INTERVAL_SECONDS = 1800 # 30 minutes
+POLL_INTERVAL_SECONDS = 1250 
 
 # Advanced Filtering: Reject if description matches these keywords
 FAKE_REMOTE_KEYWORDS = [
