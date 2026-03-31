@@ -101,6 +101,7 @@ class LinkedInScraper(BaseScraper):
                     company_elem = await item.query_selector('h4.base-search-card__subtitle, .base-card__subtitle, .result-card__subtitle-link, .job-search-card__subtitle')
                     url_elem = await item.query_selector('a.base-card__full-link, .result-card__full-link, .job-search-card__link')
                     time_elem = await item.query_selector('time, .job-result-card__list-date, .job-search-card__list-date')
+                    loc_elem = await item.query_selector('span.job-search-card__location, .job-result-card__location, .base-search-card__metadata > span:first-child')
                     
                     if not title_elem or not company_elem or not url_elem:
                         logger.info(f"Skipping job card {job_id} - missing elements (T:{bool(title_elem)} C:{bool(company_elem)} U:{bool(url_elem)})")
@@ -110,6 +111,7 @@ class LinkedInScraper(BaseScraper):
                     comp_text = (await company_elem.inner_text()).strip()
                     url_text = await url_elem.get_attribute('href')
                     time_text = (await time_elem.inner_text()).strip() if time_elem else 'Recently'
+                    detailed_location = (await loc_elem.inner_text()).strip() if loc_elem else location
                     
                     # Apply Title-Level filtering (fast fail)
                     if self.is_fake_remote(title_text.lower() + " " + comp_text.lower()):
@@ -126,7 +128,7 @@ class LinkedInScraper(BaseScraper):
                         "id": f"linkedin_{job_id.split(':')[-1]}",
                         "title": title_text,
                         "company": comp_text,
-                        "location": location,
+                        "location": detailed_location,
                         "url": url_text,
                         "time_posted": time_text,
                         "platform": "LinkedIn"

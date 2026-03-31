@@ -21,25 +21,26 @@ POLL_INTERVAL_SECONDS = 1800 # 30 minutes
 FAKE_REMOTE_KEYWORDS = [
     "hybrid", "on-site", "relocate", "relocation required", 
     "office-based", "at the office", "not remote", 
-    "us only", "usa only", "us permanent", "clearance required"
+    "us only", "usa only", "us permanent", "clearance required",
+    "backend", "full-stack", "fullstack", "java", "python", "php", "django", "laravel", "c#", "embedded"
 ]
 
 # Default Search Profiles for Remote Frontend Jobs
 TARGET_PROFILES = [
     {
-        "keywords": '("Frontend" OR "Front-end" OR "React" OR "Next.js") AND ("Junior" OR "Intern" OR "Mid")',
-        "location": "Worldwide",
-    },
-    {
-        "keywords": '("Frontend" OR "Front-end" OR "React" OR "Next.js") AND ("Junior" OR "Intern" OR "Mid")',
+        "keywords": '("Frontend" OR "Front-end" OR "React" OR "Next.js") NOT ("Backend" OR "Fullstack" OR "Full-stack")',
         "location": "Egypt",
     },
     {
-        "keywords": '("Frontend" OR "Front-end" OR "React" OR "Next.js") AND ("Junior" OR "Intern" OR "Mid")',
+        "keywords": '("Frontend" OR "Front-end" OR "React" OR "Next.js") NOT ("Backend" OR "Fullstack" OR "Full-stack")',
         "location": "Saudi Arabia",
     },
     {
-        "keywords": '("Frontend" OR "Front-end" OR "React" OR "Next.js") AND ("Junior" OR "Intern" OR "Mid")',
+        "keywords": '("Frontend" OR "Front-end" OR "React" OR "Next.js") NOT ("Backend" OR "Fullstack" OR "Full-stack")',
         "location": "United Arab Emirates",
+    },
+    {
+        "keywords": '("Frontend" OR "Front-end" OR "React" OR "Next.js") NOT ("Backend" OR "Fullstack" OR "Full-stack")',
+        "location": "United States",
     }
 ]
