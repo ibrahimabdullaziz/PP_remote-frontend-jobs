@@ -78,14 +78,25 @@ class LinkedInScraper(BaseScraper):
                 await asyncio.sleep(random.uniform(2.0, 5.0))
                 
                 # Parse job cards (Guest View Layout)
-                items = await page.query_selector_all('ul.jobs-search__results-list > li')
-                logger.info(f"Found {len(items)} job cards on page.")
+                items = await page.query_selector_all('ul.jobs-search__results-list > li, .jobs-search__results-list > li')
+                logger.info(f"Found {len(items)} items in the results list.")
                 
                 for item in items:
-                    job_id = await item.get_attribute("data-entity-urn")
-                    if not job_id:
+                    # Multi-source ID extraction
+                    job_id_raw = await item.get_attribute("data-entity-urn") or await item.get_attribute("data-id")
+                    if not job_id_raw:
+                        # Attempt to get ID from the link if attribute is missing
+                        link_elem = await item.query_selector('a')
+                        link_href = await link_elem.get_attribute('href') if link_elem else ""
+                        if '/jobs/view/' in link_href:
+                            job_id_raw = link_href.split('/view/')[-1].split('?')[0].split('/')[0]
+                    
+                    if not job_id_raw:
+                        logger.info("Found an item without a job ID - likely a generic card. Skipping.")
                         continue
                         
+                    job_id = job_id_raw.split(':')[-1] if ':' in job_id_raw else job_id_raw
+
                     title_elem = await item.query_selector('h3.base-search-card__title, .base-card__title, .result-card__title, .job-search-card__title')
                     company_elem = await item.query_selector('h4.base-search-card__subtitle, .base-card__subtitle, .result-card__subtitle-link, .job-search-card__subtitle')
                     url_elem = await item.query_selector('a.base-card__full-link, .result-card__full-link, .job-search-card__link')
