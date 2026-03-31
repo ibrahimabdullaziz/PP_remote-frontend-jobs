@@ -7,7 +7,7 @@ import httpx
 from bs4 import BeautifulSoup
 from loguru import logger
 from scrapers.base import BaseScraper
-from config.settings import PROXIES, FAKE_REMOTE_KEYWORDS
+from config.settings import PROXIES, FAKE_REMOTE_KEYWORDS, MANDATORY_TITLE_KEYWORDS
 
 class LinkedInScraper(BaseScraper):
     def __init__(self):
@@ -113,7 +113,12 @@ class LinkedInScraper(BaseScraper):
                     time_text = (await time_elem.inner_text()).strip() if time_elem else 'Recently'
                     detailed_location = (await loc_elem.inner_text()).strip() if loc_elem else location
                     
-                    # Apply Title-Level filtering (fast fail)
+                    # 1. Strict Title Validation (Fast Kill)
+                    if not any(kw.lower() in title_text.lower() for kw in MANDATORY_TITLE_KEYWORDS):
+                        logger.info(f"Skipping IRRELEVANT title: {title_text}")
+                        continue
+
+                    # 2. Apply Title-Level filtering (fake remote check)
                     if self.is_fake_remote(title_text.lower() + " " + comp_text.lower()):
                         logger.info(f"Skipping {title_text} at {comp_text} (Title/Company indicates fake remote)")
                         continue

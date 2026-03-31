@@ -25,6 +25,9 @@ FAKE_REMOTE_KEYWORDS = [
     "backend", "full-stack", "fullstack", "java", "python", "php", "django", "laravel", "c#", "embedded"
 ]
 
+# Mandatory Keywords: One of these MUST be in the job title
+MANDATORY_TITLE_KEYWORDS = ["frontend", "front-end", "react", "next.js", "vue", "javascript", "web", "software", "ui", "ux"]
+
 # Default Search Profiles for Remote Frontend Jobs
 TARGET_PROFILES = [
     {
