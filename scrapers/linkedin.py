@@ -86,13 +86,13 @@ class LinkedInScraper(BaseScraper):
                     if not job_id:
                         continue
                         
-                    title_elem = await item.query_selector('h3.base-search-card__title, .base-card__title, .result-card__title')
-                    company_elem = await item.query_selector('h4.base-search-card__subtitle, .base-card__subtitle, .result-card__subtitle-link')
-                    url_elem = await item.query_selector('a.base-card__full-link, .result-card__full-link')
-                    time_elem = await item.query_selector('time, .job-result-card__list-date')
+                    title_elem = await item.query_selector('h3.base-search-card__title, .base-card__title, .result-card__title, .job-search-card__title')
+                    company_elem = await item.query_selector('h4.base-search-card__subtitle, .base-card__subtitle, .result-card__subtitle-link, .job-search-card__subtitle')
+                    url_elem = await item.query_selector('a.base-card__full-link, .result-card__full-link, .job-search-card__link')
+                    time_elem = await item.query_selector('time, .job-result-card__list-date, .job-search-card__list-date')
                     
                     if not title_elem or not company_elem or not url_elem:
-                        logger.debug(f"Skipping job card {job_id} - missing elements (T:{bool(title_elem)} C:{bool(company_elem)} U:{bool(url_elem)})")
+                        logger.info(f"Skipping job card {job_id} - missing elements (T:{bool(title_elem)} C:{bool(company_elem)} U:{bool(url_elem)})")
                         continue
 
                     title_text = (await title_elem.inner_text()).strip()

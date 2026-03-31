@@ -20,7 +20,8 @@ POLL_INTERVAL_SECONDS = 1800 # 30 minutes
 # Advanced Filtering: Reject if description matches these keywords
 FAKE_REMOTE_KEYWORDS = [
     "hybrid", "on-site", "relocate", "relocation required", 
-    "office", "not remote", "us only", "usa only", "clearance"
+    "office-based", "at the office", "not remote", 
+    "us only", "usa only", "us permanent", "clearance required"
 ]
 
 # Default Search Profiles for Remote Frontend Jobs
