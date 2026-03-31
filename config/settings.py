@@ -41,9 +41,5 @@ TARGET_PROFILES = [
     {
         "keywords": '("Frontend" OR "Front-end" OR "React" OR "Next.js") NOT ("Backend" OR "Fullstack" OR "Full-stack")',
         "location": "United Arab Emirates",
-    },
-    {
-        "keywords": '("Frontend" OR "Front-end" OR "React" OR "Next.js") NOT ("Backend" OR "Fullstack" OR "Full-stack")',
-        "location": "United States",
     }
 ]
