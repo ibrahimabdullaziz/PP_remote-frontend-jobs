@@ -86,37 +86,40 @@ class LinkedInScraper(BaseScraper):
                     if not job_id:
                         continue
                         
-                    title_elem = await item.query_selector('h3.base-search-card__title')
-                    company_elem = await item.query_selector('h4.base-search-card__subtitle')
-                    url_elem = await item.query_selector('a.base-card__full-link')
-                    time_elem = await item.query_selector('time')
+                     title_elem = await item.query_selector('h3.base-search-card__title, .base-card__title, .result-card__title')
+                    company_elem = await item.query_selector('h4.base-search-card__subtitle, .base-card__subtitle, .result-card__subtitle-link')
+                    url_elem = await item.query_selector('a.base-card__full-link, .result-card__full-link')
+                    time_elem = await item.query_selector('time, .job-result-card__list-date')
                     
-                    if title_elem and company_elem and url_elem:
-                        title_text = (await title_elem.inner_text()).strip()
-                        comp_text = (await company_elem.inner_text()).strip()
-                        url_text = await url_elem.get_attribute('href')
-                        time_text = (await time_elem.inner_text()).strip() if time_elem else 'Recently'
+                    if not title_elem or not company_elem or not url_elem:
+                        logger.debug(f"Skipping job card {job_id} - missing elements (T:{bool(title_elem)} C:{bool(company_elem)} U:{bool(url_elem)})")
+                        continue
+
+                    title_text = (await title_elem.inner_text()).strip()
+                    comp_text = (await company_elem.inner_text()).strip()
+                    url_text = await url_elem.get_attribute('href')
+                    time_text = (await time_elem.inner_text()).strip() if time_elem else 'Recently'
+                    
+                    # Apply Title-Level filtering (fast fail)
+                    if self.is_fake_remote(title_text.lower() + " " + comp_text.lower()):
+                        logger.info(f"Skipping {title_text} at {comp_text} (Title/Company indicates fake remote)")
+                        continue
                         
-                        # Apply Title-Level filtering (fast fail)
-                        if self.is_fake_remote(title_text.lower() + " " + comp_text.lower()):
-                            logger.info(f"Skipping {title_text} at {comp_text} (Title/Company indicates fake remote)")
-                            continue
-                            
-                        # Apply Description-Level filtering (HTTP fetch)
-                        desc_text = await self.fetch_job_description(url_text)
-                        if self.is_fake_remote(desc_text):
-                            logger.info(f"Skipping {title_text} at {comp_text} (Description indicates fake remote)")
-                            continue
-                        
-                        jobs.append({
-                            "id": f"linkedin_{job_id.split(':')[-1]}",
-                            "title": title_text,
-                            "company": comp_text,
-                            "location": location,
-                            "url": url_text,
-                            "time_posted": time_text,
-                            "platform": "LinkedIn"
-                        })
+                    # Apply Description-Level filtering (HTTP fetch)
+                    desc_text = await self.fetch_job_description(url_text)
+                    if self.is_fake_remote(desc_text):
+                        logger.info(f"Skipping {title_text} at {comp_text} (Description indicates fake remote)")
+                        continue
+                    
+                    jobs.append({
+                        "id": f"linkedin_{job_id.split(':')[-1]}",
+                        "title": title_text,
+                        "company": comp_text,
+                        "location": location,
+                        "url": url_text,
+                        "time_posted": time_text,
+                        "platform": "LinkedIn"
+                    })
             except Exception as e:
                 logger.error(f"LinkedIn Scraper Exception: {e}")
                 raise e # Reraise to be caught by main loop for admin alert
